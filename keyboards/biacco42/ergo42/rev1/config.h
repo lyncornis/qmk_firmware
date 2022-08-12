@@ -76,3 +76,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //#define NO_ACTION_LAYER
 //#define NO_ACTION_TAPPING
 //#define NO_ACTION_ONESHOT
+
+// JOYSTICK settings
+#define JOYSTICK_BUTTON_COUNT 0
+#define JOYSTICK_AXES_COUNT 2
