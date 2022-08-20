@@ -116,10 +116,48 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 #include "joystick.h"
 #include "analog.h"
 void send_joystick_packet(joystick_t *joystick);
+signed short uncalibAD(signed short ad);
+#define reverse_axes_x 1
+#define reverse_axes_y 0
 
 void joystick_task(){
-		joystick_status.axes[0] = analogReadPin(F4)/4 - 128;
-		joystick_status.axes[1] = analogReadPin(D4)/4 - 128;
-		joystick_status.status |= JS_UPDATED;
-        send_joystick_packet(&joystick_status);
+    signed short VRX = analogReadPin(F4);
+    signed short VRY = analogReadPin(D4);
+    signed short temp;
+#if 0
+    #if reverse_axes_x
+    joystick_status.axes[0] = 128 - (analogReadPin(F4) >> 2);    // VRX
+    #else
+    joystick_status.axes[0] = (analogReadPin(F4) >> 2) - 128;    // VRX
+    #endif
+
+    #if reverse_axes_y
+    joystick_status.axes[1] = 128 - (analogReadPin(D4) >> 2);    // VRY
+    #else
+    joystick_status.axes[1] = (analogReadPin(D4) >> 2) - 128;    // VRY
+    #endif
+#endif
+
+    // calibration
+    temp = 128 - (VRX  >> 2);
+    joystick_status.axes[0] = uncalibAD(temp);  // x
+    temp = (VRY  >> 2) - 128;
+    joystick_status.axes[1] = uncalibAD(temp);  // y
+
+
+    joystick_status.status |= JS_UPDATED;
+    send_joystick_packet(&joystick_status);
+}
+
+signed short uncalibAD(signed short ad)
+{
+  ad = ad * 255 / 180;
+  if (ad > 127) {
+      ad = 127;
+  } else if (ad < -127) {
+      ad = -127;
+  } else if (ad < 40 && ad > -40) {
+    ad = 0;
+  }
+  return ad;
 }
